@@ -9,8 +9,9 @@ const Navbar = () => {
 
       {/* Links */}
       <div className="hidden md:flex items-center gap-8 text-gray-600">
-        <a href="#" className="hover:text-indigo-600">Find Jobs</a>
+        <a href="/jobs" className="hover:text-indigo-600">Find Jobs</a>
         <a href="#" className="hover:text-indigo-600">Browse Companies</a>
+        <a href="/admin" className="hover:text-red-600 font-semibold">Admin</a>
       </div>
 
       {/* Auth */}
