@@ -44,7 +44,7 @@ const jobs = [
   },
   {
     id: 5,
-    company: "ClassPass",
+    company: "ClassPass2",
     logo: "https://cdn.simpleicons.org/classpass/000000",
     role: "Product Designer",
     location: "Manchester, UK",
