@@ -1,10 +1,46 @@
-import React from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import bgPattern from "../assets/Pattern.png";
 import { latestJobs } from "../data/jobsData";
+import { fetchJobs } from "../lib/jobsApi";
+
+const toUiJob = (job) => ({
+  id: job.id,
+  company: job.company || "Unknown Company",
+  logo: job.logo || "https://cdn.simpleicons.org/briefcase/6B7280",
+  role: job.role || job.title || "Untitled Role",
+  location: job.location || "Remote",
+  description: job.description || "",
+  type: job.type || "Full Time",
+  tags: job.tags || [{ name: "General", color: "bg-blue-50 text-blue-400" }],
+});
+
+const withLatestDefaults = (job) => ({
+  ...job,
+  description: job.description || `${job.company} is hiring a ${job.role} in ${job.location}.`,
+  type: job.type || "Full-Time",
+  tags: job.tags || [
+    { name: "Marketing", color: "text-orange-400 border-orange-200" },
+    { name: "Design", color: "text-blue-400 border-blue-200" },
+  ],
+});
 
 const LatestJobs = () => {
+  const [adminJobs, setAdminJobs] = useState([]);
+
+  useEffect(() => {
+    fetchJobs()
+      .then((data) => setAdminJobs(data.map(toUiJob)))
+      .catch(() => setAdminJobs([]));
+  }, []);
+
+  const latestMixed = useMemo(() => {
+    const fromAdmin = adminJobs.map((job) => ({ ...job, source: "admin" }));
+    const fromDummy = latestJobs.map((job) => ({ ...withLatestDefaults(job), source: "latest" }));
+    return [...fromAdmin, ...fromDummy].slice(0, 8);
+  }, [adminJobs]);
+
   return (
     <section
       className="py-20 relative overflow-hidden"
@@ -25,10 +61,10 @@ const LatestJobs = () => {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {latestJobs.map((job) => (
+          {latestMixed.map((job) => (
             <Link
-              to={`/jobs/${job.id}?source=latest`}
-              key={job.id}
+              to={`/jobs/${job.id}?source=${job.source}`}
+              key={`${job.source}-${job.id}`}
               className="bg-white p-6 flex items-start gap-6 hover:shadow-lg transition-shadow border border-gray-50 cursor-pointer"
             >
               <img src={job.logo} alt={job.company} className="w-12 h-12 object-contain" />
@@ -36,19 +72,21 @@ const LatestJobs = () => {
               <div className="flex-1">
                 <h3 className="text-xl font-bold text-gray-900 mb-1">{job.role}</h3>
                 <p className="text-gray-400 text-sm mb-4">
-                  {job.company} <span className="mx-2">•</span> {job.location}
+                  {job.company} <span className="mx-2">|</span> {job.location}
                 </p>
 
                 <div className="flex flex-wrap gap-2">
                   <span className="px-3 py-1 bg-green-50 text-green-500 rounded-full text-xs font-bold border border-green-100">
-                    Full-Time
+                    {job.type}
                   </span>
-                  <span className="px-3 py-1 border border-orange-200 text-orange-400 rounded-full text-xs font-bold">
-                    Marketing
-                  </span>
-                  <span className="px-3 py-1 border border-blue-200 text-blue-400 rounded-full text-xs font-bold">
-                    Design
-                  </span>
+                  {(job.tags || []).slice(0, 2).map((tag, i) => (
+                    <span
+                      key={i}
+                      className={`px-3 py-1 border rounded-full text-xs font-bold ${tag.color || "text-blue-400 border-blue-200"}`}
+                    >
+                      {tag.name}
+                    </span>
+                  ))}
                 </div>
               </div>
             </Link>

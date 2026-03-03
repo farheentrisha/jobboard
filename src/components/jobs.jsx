@@ -1,9 +1,35 @@
-import React from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { jobs } from "../data/jobsData";
+import { fetchJobs } from "../lib/jobsApi";
+
+const toUiJob = (job) => ({
+  id: job.id,
+  company: job.company || "Unknown Company",
+  logo: job.logo || "https://cdn.simpleicons.org/briefcase/6B7280",
+  role: job.role || job.title || "Untitled Role",
+  location: job.location || "Remote",
+  description: job.description || "",
+  type: job.type || "Full Time",
+  tags: job.tags || [],
+});
 
 const FeaturedJobs = () => {
+  const [adminJobs, setAdminJobs] = useState([]);
+
+  useEffect(() => {
+    fetchJobs()
+      .then((data) => setAdminJobs(data.map(toUiJob)))
+      .catch(() => setAdminJobs([]));
+  }, []);
+
+  const featuredJobs = useMemo(() => {
+    const fromAdmin = adminJobs.map((job) => ({ ...job, source: "admin" }));
+    const fromDummy = jobs.map((job) => ({ ...job, source: "featured" }));
+    return [...fromAdmin, ...fromDummy].slice(0, 8);
+  }, [adminJobs]);
+
   return (
     <section className="py-20 bg-white">
       <div className="container mx-auto px-4 md:px-8">
@@ -17,10 +43,10 @@ const FeaturedJobs = () => {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {jobs.map((job) => (
+          {featuredJobs.map((job) => (
             <Link
-              to={`/jobs/${job.id}?source=featured`}
-              key={job.id}
+              to={`/jobs/${job.id}?source=${job.source}`}
+              key={`${job.source}-${job.id}`}
               className="p-6 border border-gray-100 bg-white hover:shadow-xl transition-all duration-300 group block"
             >
               <div className="flex justify-between items-start mb-4">
@@ -35,7 +61,7 @@ const FeaturedJobs = () => {
               </h3>
 
               <p className="text-sm text-gray-400 mb-4">
-                {job.company} • {job.location}
+                {job.company} | {job.location}
               </p>
 
               <p className="text-sm text-gray-500 mb-6 line-clamp-2">

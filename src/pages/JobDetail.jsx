@@ -1,13 +1,27 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
 import { findJobByRoute } from "../data/jobsData";
-import { submitApplication } from "../lib/jobsApi";
+import { fetchJobById, submitApplication } from "../lib/jobsApi";
+
+const mapAdminJob = (job) => ({
+  id: job.id,
+  company: job.company || "Unknown Company",
+  logo: job.logo || "https://cdn.simpleicons.org/briefcase/6B7280",
+  role: job.role || job.title || "Untitled Role",
+  location: job.location || "Remote",
+  description: job.description || "",
+  type: job.type || "Full Time",
+  tags: job.tags || [],
+});
 
 const JobDetail = () => {
   const { id } = useParams();
   const [searchParams] = useSearchParams();
   const source = searchParams.get("source") || "featured";
-  const job = findJobByRoute(id, source);
+  const isAdmin = source === "admin";
+  const staticJob = isAdmin ? null : findJobByRoute(id, source);
+  const [adminJob, setAdminJob] = useState(null);
+  const [adminMissing, setAdminMissing] = useState(false);
   const [submitMessage, setSubmitMessage] = useState("");
   const [form, setForm] = useState({
     name: "",
@@ -15,6 +29,32 @@ const JobDetail = () => {
     resume: "",
     coverNote: "",
   });
+
+  useEffect(() => {
+    if (!isAdmin) {
+      return;
+    }
+
+    let cancelled = false;
+    fetchJobById(id)
+      .then((data) => {
+        if (cancelled) return;
+        setAdminMissing(false);
+        setAdminJob(mapAdminJob(data));
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setAdminMissing(true);
+        setAdminJob(null);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [id, isAdmin]);
+
+  const job = isAdmin ? adminJob : staticJob;
+  const loading = isAdmin && (!adminJob || Number(adminJob.id) !== Number(id)) && !adminMissing;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -37,7 +77,11 @@ const JobDetail = () => {
     }
   };
 
-  if (!job) {
+  if (loading) {
+    return <div className="container mx-auto px-4 py-16">Loading job details...</div>;
+  }
+
+  if (!job && !loading) {
     return <div className="container mx-auto px-4 py-16">Job not found.</div>;
   }
 
@@ -49,7 +93,7 @@ const JobDetail = () => {
           <div>
             <h1 className="text-2xl font-bold text-gray-900">{job.role}</h1>
             <p className="text-gray-500">
-              {job.company} • {job.location}
+              {job.company} | {job.location}
             </p>
           </div>
         </div>
