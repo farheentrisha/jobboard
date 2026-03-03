@@ -42,14 +42,17 @@ const LatestJobs = () => {
   }, [adminJobs]);
 
   return (
-    <section
-      className="py-20 relative overflow-hidden"
-      style={{
-        backgroundImage: `url(${bgPattern})`,
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-      }}
-    >
+   <section
+  className="py-20 relative overflow-hidden"
+  style={{
+    backgroundImage: `url(${bgPattern})`,
+    // Set the width (e.g., 40%) and keep height auto
+    backgroundSize: "40% auto", 
+    // Anchor it to the right
+    backgroundPosition: "right center", 
+    backgroundRepeat: "no-repeat",
+  }}
+>
       <div className="container mx-auto px-4 md:px-8">
         <div className="flex justify-between items-end mb-12">
           <h2 className="text-4xl md:text-5xl font-extrabold text-gray-900">

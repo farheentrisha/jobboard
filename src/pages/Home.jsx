@@ -5,6 +5,7 @@ import ExploreCategory from "../components/category";
 import FeaturedJobs from "../components/jobs";
 import LatestJobs from "../components/latestjob";
 import Footer from "../components/footer.jsx";
+import PostJobBanner from "../components/banner.jsx";
 const Home = () => {
   return (
     <>
@@ -12,9 +13,11 @@ const Home = () => {
       <Hero />
       <Companies />
       <ExploreCategory />
+      <PostJobBanner />
       <FeaturedJobs />
       <LatestJobs />
       <Footer />
+      
 
     </>
   );
