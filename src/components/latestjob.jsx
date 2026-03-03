@@ -6,7 +6,7 @@ import { latestJobs } from "../data/jobsData";
 import { fetchJobs } from "../lib/jobsApi";
 
 const toUiJob = (job) => ({
-  id: job.id,
+  id: job.id ?? job._id,
   company: job.company || "Unknown Company",
   logo: job.logo || "https://cdn.simpleicons.org/briefcase/6B7280",
   role: job.role || job.title || "Untitled Role",
@@ -63,7 +63,8 @@ const LatestJobs = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {latestMixed.map((job) => (
             <Link
-              to={`/jobs/${job.id}?source=${job.source}`}
+              to={`/jobs/${encodeURIComponent(String(job.id))}?source=${job.source}`}
+              state={{ job }}
               key={`${job.source}-${job.id}`}
               className="bg-white p-6 flex items-start gap-6 hover:shadow-lg transition-shadow border border-gray-50 cursor-pointer"
             >

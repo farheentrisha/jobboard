@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
-import { useParams, useSearchParams } from "react-router-dom";
+import { useLocation, useParams, useSearchParams } from "react-router-dom";
 import { findJobByRoute } from "../data/jobsData";
 import { fetchJobById, submitApplication } from "../lib/jobsApi";
 
 const mapAdminJob = (job) => ({
-  id: job.id,
+  id: job.id ?? job._id,
   company: job.company || "Unknown Company",
   logo: job.logo || "https://cdn.simpleicons.org/briefcase/6B7280",
   role: job.role || job.title || "Untitled Role",
@@ -16,11 +16,13 @@ const mapAdminJob = (job) => ({
 
 const JobDetail = () => {
   const { id } = useParams();
+  const locationState = useLocation();
   const [searchParams] = useSearchParams();
   const source = searchParams.get("source") || "featured";
   const isAdmin = source === "admin";
-  const staticJob = isAdmin ? null : findJobByRoute(id, source);
-  const [adminJob, setAdminJob] = useState(null);
+  const stateJob = locationState.state?.job ? mapAdminJob(locationState.state.job) : null;
+  const staticJob = isAdmin ? null : stateJob || findJobByRoute(id, source);
+  const [adminJob, setAdminJob] = useState(stateJob);
   const [adminMissing, setAdminMissing] = useState(false);
   const [submitMessage, setSubmitMessage] = useState("");
   const [form, setForm] = useState({
@@ -31,7 +33,7 @@ const JobDetail = () => {
   });
 
   useEffect(() => {
-    if (!isAdmin) {
+    if (!isAdmin || stateJob) {
       return;
     }
 
@@ -51,10 +53,10 @@ const JobDetail = () => {
     return () => {
       cancelled = true;
     };
-  }, [id, isAdmin]);
+  }, [id, isAdmin, stateJob]);
 
   const job = isAdmin ? adminJob : staticJob;
-  const loading = isAdmin && (!adminJob || Number(adminJob.id) !== Number(id)) && !adminMissing;
+  const loading = isAdmin && !adminJob && !adminMissing;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -63,8 +65,9 @@ const JobDetail = () => {
     if (!job) return;
 
     try {
+      const numericJobId = Number(job.id);
       await submitApplication({
-        job_id: Number(job.id),
+        job_id: Number.isNaN(numericJobId) ? undefined : numericJobId,
         name: form.name,
         email: form.email,
         resume_link: form.resume,

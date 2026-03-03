@@ -76,13 +76,11 @@ app.get("/api/jobs", async (req, res) => {
 
 // Get single job by numeric ID
 app.get("/api/jobs/:id", async (req, res) => {
-  const jobId = Number(req.params.id);
-  if (Number.isNaN(jobId)) {
-    return res.status(400).json({ error: "Invalid job ID" });
-  }
-
   try {
-    const job = await Job.findOne({ id: jobId });
+    const rawId = req.params.id;
+    const numericId = Number(rawId);
+    const byNumericId = Number.isNaN(numericId) ? null : await Job.findOne({ id: numericId });
+    const job = byNumericId || (mongoose.Types.ObjectId.isValid(rawId) ? await Job.findById(rawId) : null);
     if (!job) return res.status(404).json({ error: "Job not found" });
     res.json(mapJobToLegacyShape(job));
   } catch {
@@ -120,13 +118,12 @@ app.post("/api/jobs", async (req, res) => {
 
 // Delete a job by numeric ID
 app.delete("/api/jobs/:id", async (req, res) => {
-  const jobId = Number(req.params.id);
-  if (Number.isNaN(jobId)) {
-    return res.status(400).json({ error: "Invalid job ID" });
-  }
-
   try {
-    const deleted = await Job.findOneAndDelete({ id: jobId });
+    const rawId = req.params.id;
+    const numericId = Number(rawId);
+    const deleted =
+      (Number.isNaN(numericId) ? null : await Job.findOneAndDelete({ id: numericId })) ||
+      (mongoose.Types.ObjectId.isValid(rawId) ? await Job.findByIdAndDelete(rawId) : null);
     if (!deleted) return res.status(404).json({ error: "Job not found" });
     res.status(204).end();
   } catch {

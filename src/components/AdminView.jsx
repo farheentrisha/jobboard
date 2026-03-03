@@ -52,7 +52,7 @@ const AdminView = () => {
   const handleDelete = async (id) => {
     try {
       await deleteJob(id);
-      setJobs(jobs.filter((j) => j.id !== id));
+      setJobs(jobs.filter((j) => String(j.id ?? j._id) !== String(id)));
     } catch {
       setError("Failed to delete job.");
     }
@@ -89,14 +89,14 @@ const AdminView = () => {
             </thead>
             <tbody>
               {jobs.map(job => (
-                <tr key={job.id}>
-                  <td className="border px-4 py-2">{job.id}</td>
+                <tr key={job.id ?? job._id}>
+                  <td className="border px-4 py-2">{job.id ?? job._id}</td>
                   <td className="border px-4 py-2">{job.company}</td>
                   <td className="border px-4 py-2">{job.role || job.title}</td>
                   <td className="border px-4 py-2">{job.location}</td>
                   <td className="border px-4 py-2">{job.type}</td>
                   <td className="border px-4 py-2">
-                    <button onClick={() => handleDelete(job.id)} className="bg-red-500 text-white px-3 py-1 rounded">Delete</button>
+                    <button onClick={() => handleDelete(job.id ?? job._id)} className="bg-red-500 text-white px-3 py-1 rounded">Delete</button>
                   </td>
                 </tr>
               ))}

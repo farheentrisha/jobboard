@@ -5,7 +5,7 @@ import { jobs } from "../data/jobsData";
 import { fetchJobs } from "../lib/jobsApi";
 
 const toUiJob = (job) => ({
-  id: job.id,
+  id: job.id ?? job._id,
   company: job.company || "Unknown Company",
   logo: job.logo || "https://cdn.simpleicons.org/briefcase/6B7280",
   role: job.role || job.title || "Untitled Role",
@@ -45,7 +45,8 @@ const FeaturedJobs = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {featuredJobs.map((job) => (
             <Link
-              to={`/jobs/${job.id}?source=${job.source}`}
+              to={`/jobs/${encodeURIComponent(String(job.id))}?source=${job.source}`}
+              state={{ job }}
               key={`${job.source}-${job.id}`}
               className="p-6 border border-gray-100 bg-white hover:shadow-xl transition-all duration-300 group block"
             >
